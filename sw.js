@@ -1,4 +1,4 @@
-const CACHE='pure-wardrobe-v7';
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html','./app.js','./debug.js','./manifest.json']))));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
-self.addEventListener('fetch',e=>{if(e.request.mode==='navigate')return e.respondWith(fetch(e.request).then(async r=>{const text=await r.clone().text();const injected=text.includes('./debug.js')?text:text.replace('</body>','<script src="./debug.js?v=7"></script></body>');const out=new Response(injected,{status:r.status,statusText:r.statusText,headers:r.headers});caches.open(CACHE).then(c=>c.put(e.request,out.clone()));return out}).catch(()=>caches.match(e.request)));e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))})
+const CACHE='pure-wardrobe-v8';
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html','./manifest.json']))));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(e.request.url.includes('/app.js'))return e.respondWith(fetch(e.request,{cache:'no-store'}).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request)));if(e.request.mode==='navigate')return e.respondWith(fetch(e.request,{cache:'no-store'}).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request)));e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});
